@@ -7,7 +7,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-const docCount = 100000
+const docCount = 10000
 
 func BenchmarkInsertMap(b *testing.B) {
 	// Define document structure with 10 fields
@@ -17,7 +17,7 @@ func BenchmarkInsertMap(b *testing.B) {
 	}
 
 	// Create in-memory SQLite database
-	idx, err := NewIndex("file::memory:?cache=shared", docType)
+	idx, err := NewIndex(":memory:", docType)
 	if err != nil {
 		b.Fatalf("Failed to create index: %v", err)
 	}
@@ -65,7 +65,7 @@ func BenchmarkInsert(b *testing.B) {
 	}
 
 	// Create in-memory SQLite database
-	idx, err := NewIndex("file::memory:?cache=shared", docType)
+	idx, err := NewIndex(":memory:", docType)
 	if err != nil {
 		b.Fatalf("Failed to create index: %v", err)
 	}
