@@ -7,17 +7,24 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-const docCount = 10000
+const docCount = 1000
+
+type TestDoc struct {
+	Field1  string
+	Field2  string
+	Field3  string
+	Field4  string
+	Field5  string
+	Field6  string
+	Field7  string
+	Field8  string
+	Field9  string
+	Field10 string
+}
 
 func BenchmarkInsertMap(b *testing.B) {
-	// Define document structure with 10 fields
-	docType := DocType{
-		"field1", "field2", "field3", "field4", "field5",
-		"field6", "field7", "field8", "field9", "field10",
-	}
-
 	// Create in-memory SQLite database
-	idx, err := NewIndex(":memory:", docType)
+	idx, err := NewIndex(":memory:", TestDoc{})
 	if err != nil {
 		b.Fatalf("Failed to create index: %v", err)
 	}
@@ -26,7 +33,7 @@ func BenchmarkInsertMap(b *testing.B) {
 	docs := make([]Document, docCount)
 	for i := 0; i < docCount; i++ {
 		doc := make(Document)
-		for j, field := range docType {
+		for j, field := range idx.Fields() {
 			doc[field] = fmt.Sprintf("value_%d_%d", i, j)
 		}
 		docs[i] = doc
@@ -45,27 +52,10 @@ func BenchmarkInsertMap(b *testing.B) {
 }
 
 func BenchmarkInsert(b *testing.B) {
-	type TestDoc struct {
-		Field1  string
-		Field2  string
-		Field3  string
-		Field4  string
-		Field5  string
-		Field6  string
-		Field7  string
-		Field8  string
-		Field9  string
-		Field10 string
-	}
 
 	// Define document structure with 10 fields
-	docType := DocType{
-		"Field1", "Field2", "Field3", "Field4", "Field5",
-		"Field6", "Field7", "Field8", "Field9", "Field10",
-	}
-
 	// Create in-memory SQLite database
-	idx, err := NewIndex(":memory:", docType)
+	idx, err := NewIndex(":memory:", TestDoc{})
 	if err != nil {
 		b.Fatalf("Failed to create index: %v", err)
 	}

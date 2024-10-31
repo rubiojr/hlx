@@ -8,8 +8,7 @@ import (
 )
 
 func main() {
-	doc := hlx.DocType{"name", "content"}
-	idx, err := hlx.NewIndex("db.sqlite", doc)
+	idx, err := hlx.NewIndex("db.sqlite", struct{ Name, Content string }{})
 	if err != nil {
 		panic(err)
 	}
@@ -18,12 +17,10 @@ func main() {
 		hlx.Document{"name": "greeting", "content": "hello world"},
 	)
 
-	doc2 := struct {
-		Name    string
-		Content string
-	}{"greeting", "alo?"}
-
-	idx.Insert(doc2)
+	idx.Insert(
+		struct{ Name, Content string }{Name: "greeting", Content: "alo?"},
+		struct{ Content, Name string }{Name: "greeting", Content: "alo?"},
+	)
 
 	results, err := idx.Search(`hello OR "alo?"`)
 	if err != nil {

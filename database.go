@@ -15,14 +15,14 @@ func open(uri string) (*sql.DB, error) {
 	return db, nil
 }
 
-func initDatabase(ctx context.Context, uri string, doc DocType) (*sql.DB, error) {
+func initDatabase(ctx context.Context, uri string, fields []string) (*sql.DB, error) {
 	db, err := open(uri)
 	if err != nil {
 		return nil, err
 	}
 
 	q := `CREATE VIRTUAL TABLE IF NOT EXISTS fulltext_search USING FTS5(_id,`
-	for _, k := range doc {
+	for _, k := range fields {
 		q += fmt.Sprintf(" %s,", k)
 	}
 	q = q[:len(q)-1] + ");"

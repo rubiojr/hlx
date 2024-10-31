@@ -16,23 +16,39 @@ type Index interface {
 	Insert(doc ...any) error
 	Delete(id string) error
 	Get(id string) (Document, error)
+	Fields() []string
 }
 
 type index struct {
-	docType DocType
-	db      *sql.DB
+	fields fields
+	db     *sql.DB
 }
 
 type Document map[string]string
-type DocType []string
+type fields []string
 
-func NewIndex(uri string, doc DocType) (Index, error) {
-	db, err := initDatabase(context.Background(), uri, doc)
+func NewIndex(uri string, doc any) (Index, error) {
+	docType := make(fields, 0)
+	v := reflect.ValueOf(doc)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		docType = append(docType, field.Name)
+	}
+
+	db, err := initDatabase(context.Background(), uri, docType)
 	if err != nil {
 		return nil, err
 	}
 
-	return &index{docType: doc, db: db}, nil
+	return &index{fields: docType, db: db}, nil
+}
+
+func (i *index) Fields() []string {
+	return i.fields
 }
 
 func (i *index) Get(id string) (Document, error) {
@@ -74,7 +90,7 @@ func (i *index) Insert(docs ...interface{}) error {
 	}
 
 	q := []string{"?"}
-	for range i.docType {
+	for range i.fields {
 		q = append(q, "?")
 	}
 	pholder := strings.Join(q, ",") // "?,?"
@@ -115,7 +131,7 @@ func (i *index) InsertMap(docs ...Document) error {
 	}
 
 	q := []string{}
-	for range i.docType {
+	for range i.fields {
 		q = append(q, "?")
 	}
 	pholder := strings.Join(q, ",") // "?,?"
