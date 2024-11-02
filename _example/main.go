@@ -7,25 +7,31 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+type Doc struct {
+	Id      string
+	Name    string
+	Content string
+}
+
 func main() {
-	idx, err := hlx.NewIndex("db.sqlite", struct{ Name, Content string }{})
+	idx, err := hlx.NewIndex[Doc]("db.sqlite")
 	if err != nil {
 		panic(err)
 	}
 
-	idx.InsertMap(
-		hlx.Document{"name": "greeting", "content": "hello world"},
+	err = idx.Insert(
+		Doc{Name: "greeting", Content: "hello"},
+		Doc{Name: "greeting", Content: "alo?"},
 	)
-
-	idx.Insert(
-		struct{ Name, Content string }{Name: "greeting", Content: "alo?"},
-		struct{ Content, Name string }{Name: "greeting", Content: "alo?"},
-	)
+	if err != nil {
+		panic(err)
+	}
 
 	results, err := idx.Search(`hello OR "alo?"`)
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("Results found:", len(results))
 	for _, r := range results {
 		fmt.Println(r)
 	}
