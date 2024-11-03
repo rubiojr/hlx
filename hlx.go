@@ -11,6 +11,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+const insertQuery = "INSERT INTO fulltext_search (%s) VALUES (%s)"
+
 type Index[K any] interface {
 	Search(query string) ([]K, error)
 	Insert(doc ...K) error
@@ -97,8 +99,6 @@ func (i *index[K]) Delete(id string) error {
 	_, err := i.db.Exec("DELETE FROM fulltext_search WHERE id = ?", id)
 	return err
 }
-
-const insertQuery = "INSERT INTO fulltext_search (%s) VALUES (%s)"
 
 func (i *index[K]) Insert(docs ...K) (err error) {
 	vals := make([]any, len(i.fields))
