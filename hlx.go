@@ -27,7 +27,6 @@ type index[K any] struct {
 	insertStmt *sql.Stmt
 }
 
-type Document map[string]string
 type fields []string
 
 func NewIndex[K any](uri string) (Index[K], error) {
