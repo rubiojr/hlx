@@ -2,6 +2,7 @@ package hlx
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"reflect"
 	"strings"
@@ -19,9 +20,9 @@ type Index[K any] interface {
 }
 
 type index[K any] struct {
-	fields      fields
-	db          *sqlx.DB
-	insertQuery string
+	fields     fields
+	db         *sqlx.DB
+	insertStmt *sql.Stmt
 }
 
 type Document map[string]string
@@ -64,7 +65,12 @@ func NewIndex[K any](uri string) (Index[K], error) {
 		strings.Join(f, ","),
 		pholder)
 
-	return &index[K]{fields: f, db: db, insertQuery: iquery}, nil
+	stmt, err := db.Prepare(iquery)
+	if err != nil {
+		return nil, err
+	}
+
+	return &index[K]{fields: f, db: db, insertStmt: stmt}, nil
 }
 
 func (i *index[K]) Fields() []string {
@@ -113,7 +119,7 @@ func (i *index[K]) Insert(docs ...K) (err error) {
 			vals[i] = value
 		}
 
-		_, err = i.db.Exec(i.insertQuery, vals...)
+		_, err = i.insertStmt.Exec(vals...)
 	}
 
 	return err
