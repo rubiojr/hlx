@@ -87,11 +87,11 @@ func (i *index[K]) Get(id string) (K, error) {
 	defer rows.Close()
 
 	if rows.Next() {
-		if err := rows.StructScan(&doc); err != nil {
-			return doc, err
-		}
+		err = rows.StructScan(&doc)
+		return doc, err
 	}
-	return doc, nil
+
+	return doc, ErrDocumentNotFound
 }
 
 func (i *index[K]) Delete(id string) error {

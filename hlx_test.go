@@ -95,6 +95,18 @@ func TestInsert(t *testing.T) {
 			t.Fatal("Id is not a valid UUID")
 		}
 	})
+
+	t.Run("auto-generates UUIDs", func(t *testing.T) {
+		doc := TestDoc{
+			Title: "Foobar",
+		}
+		err := idx.Insert(doc)
+		assert.NoError(t, err)
+		docs, err := idx.Search("title:Foobar")
+		assert.NoError(t, err)
+		_, err = uuid.Parse(docs[0].Id)
+		assert.NoError(t, err)
+	})
 }
 
 func TestSearch(t *testing.T) {
@@ -206,4 +218,55 @@ func TestSearch(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGet(t *testing.T) {
+	idx, err := NewIndex[TestDoc](":memory:")
+	if err != nil {
+		t.Fatalf("Failed to create index: %v", err)
+	}
+
+	// Create and insert a test document
+	doc := TestDoc{
+		Id:          "test-id",
+		Title:       "Test Document",
+		Description: "This is a test description",
+		Content:     "This is the main content of the test document",
+	}
+
+	err = idx.Insert(doc)
+	if err != nil {
+		t.Fatalf("Failed to insert document: %v", err)
+	}
+
+	t.Run("Get existing document", func(t *testing.T) {
+		result, err := idx.Get("test-id")
+		assert.NoError(t, err)
+		assert.Equal(t, doc.Id, result.Id)
+		assert.Equal(t, doc.Title, result.Title)
+		assert.Equal(t, doc.Description, result.Description)
+		assert.Equal(t, doc.Content, result.Content)
+	})
+
+	t.Run("Get non-existing document", func(t *testing.T) {
+		_, err := idx.Get("non-existing-id")
+		assert.Error(t, err)
+		assert.Equal(t, "document not found", err.Error())
+	})
+
+	t.Run("auto-generates UUIDs", func(t *testing.T) {
+		doc := TestDoc{
+			Title: "Foobar",
+		}
+		err := idx.Insert(doc)
+		assert.NoError(t, err)
+		docs, err := idx.Search("title:Foobar")
+		assert.NoError(t, err)
+		u := docs[0].Id
+		_, err = uuid.Parse(u)
+		assert.NoError(t, err)
+		doc, err = idx.Get(u)
+		assert.NoError(t, err)
+		assert.Equal(t, u, doc.Id)
+	})
 }
