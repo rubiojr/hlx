@@ -2,9 +2,11 @@ package hlx
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	_ "modernc.org/sqlite"
 )
 
@@ -17,74 +19,26 @@ type TestDoc struct {
 	Content     string
 }
 
-func BenchmarkInsert(b *testing.B) {
-	b.Run("memory", func(b *testing.B) {
-		idx, err := NewIndex[TestDoc](":memory:")
-		if err != nil {
-			b.Fatalf("Failed to create index: %v", err)
-		}
-
-		// Create 10000 test documents
-		docs := make([]TestDoc, docCount)
-		for i := 0; i < docCount; i++ {
-			docs[i] = TestDoc{
-				Title:       fmt.Sprintf("value_%d_1", i),
-				Description: fmt.Sprintf("value_%d_2", i),
-				Content:     fmt.Sprintf("value_%d_3", i),
-			}
-		}
-
-		// Reset timer before the actual benchmark
-		b.ResetTimer()
-
-		// Run the benchmark
-		for i := 0; i < b.N; i++ {
-			err := idx.Insert(docs...)
-			if err != nil {
-				b.Fatalf("Failed to insert documents: %v", err)
-			}
-		}
-	})
-	b.Run("tmp db", func(b *testing.B) {
-		idx, err := NewIndex[TestDoc]("file:///tmp/hlx_test.db")
-		if err != nil {
-			b.Fatalf("Failed to create index: %v", err)
-		}
-
-		// Create 10000 test documents
-		docs := make([]TestDoc, docCount)
-		for i := 0; i < docCount; i++ {
-			docs[i] = TestDoc{
-				Title:       fmt.Sprintf("value_%d_1", i),
-				Description: fmt.Sprintf("value_%d_2", i),
-				Content:     fmt.Sprintf("value_%d_3", i),
-			}
-		}
-
-		// Reset timer before the actual benchmark
-		b.ResetTimer()
-
-		// Run the benchmark
-		for i := 0; i < b.N; i++ {
-			err := idx.Insert(docs...)
-			if err != nil {
-				b.Fatalf("Failed to insert documents: %v", err)
-			}
-		}
-	})
-}
-
 func TestNewIndex(t *testing.T) {
+	type badDoc struct{}
+
+	_, err := NewIndex[badDoc](":memory:")
+	assert.NotNil(t, err, "Expected error, got nil")
+	assert.Equal(t, err.Error(), "Id field is missing")
+
+	td := t.TempDir()
+	dbfile := filepath.Join(td, "test.db")
+
 	type doc struct {
-	}
-	_, err := NewIndex[doc](":memory:")
-	if err == nil {
-		t.Fatalf("Expected error, got nil")
+		Id string
 	}
 
-	if err.Error() != "Id field is missing" {
-		t.Fatalf("Expected error, got %v", err)
-	}
+	_, err = NewIndex[doc](":memory:")
+	assert.NoError(t, err)
+
+	_, err = NewIndex[doc](fmt.Sprintf("file://%s", dbfile))
+	assert.NoError(t, err)
+	assert.FileExists(t, dbfile)
 }
 
 func TestInsert(t *testing.T) {
@@ -191,6 +145,30 @@ func TestSearch(t *testing.T) {
 		{
 			name:          "Search with content",
 			searchQuery:   "main content",
+			expectedCount: 1,
+			expectError:   false,
+		},
+		{
+			name:          "Search with title",
+			searchQuery:   `title: "Test Document"`,
+			expectedCount: 1,
+			expectError:   false,
+		},
+		{
+			name:          "Exclude title and content columns",
+			searchQuery:   `- { title content } : "Test Document"`,
+			expectedCount: 0,
+			expectError:   false,
+		},
+		{
+			name:          "Search only content",
+			searchQuery:   `content: Test AND Document`,
+			expectedCount: 1,
+			expectError:   false,
+		},
+		{
+			name:          "Search with title and content",
+			searchQuery:   `(content : Test) AND (title: Document)`,
 			expectedCount: 1,
 			expectError:   false,
 		},
