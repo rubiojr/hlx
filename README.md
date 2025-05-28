@@ -26,7 +26,7 @@ package main
 import (
     "fmt"
     "github.com/rubiojr/hlx"
-    _ "modernc.org/sqlite"
+    _ "github.com/mattn/go-sqlite3"
 )
 
 // Define your document structure
@@ -38,11 +38,7 @@ type Document struct {
 
 func main() {
     // Create a new index (in-memory database)
-    idx, err := hlx.NewIndex[Document](
-      ":memory:",
-      // Some drivers like modernc.org/sqlite need a different driver string (defaults to sqlite3)
-      hlx.WithSQLiteDriver("sqlite")
-    )
+    idx, err := hlx.NewIndex[Document](":memory:")
     if err != nil {
         panic(err)
     }
