@@ -75,10 +75,6 @@ func main() {
 }
 ```
 
-### Creating Index from Field List
-
-Sometimes you might want to define which fields to index explicitly
-
 ### Using File-based Storage
 
 ```go
