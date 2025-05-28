@@ -39,7 +39,7 @@ func NewIndex[K any](uri string) (Index[K], error) {
 	t := v.Type()
 
 	idAdded := false
-	for i := 0; i < t.NumField(); i++ {
+	for i := range t.NumField() {
 		field := t.Field(i)
 		l := strings.ToLower(field.Name)
 		f = append(f, l)
@@ -109,7 +109,7 @@ func (i *index[K]) Insert(docs ...K) (err error) {
 		}
 		t := v.Type()
 
-		for i := 0; i < t.NumField(); i++ {
+		for i := range t.NumField() {
 			field := t.Field(i)
 			value := v.Field(i).Interface()
 			if field.Name == "Id" && value == "" {
