@@ -6,10 +6,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 
-	//_ "github.com/ncruces/go-sqlite3/driver"
-	//_ "github.com/ncruces/go-sqlite3/embed"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -42,6 +41,28 @@ func TestNewIndex(t *testing.T) {
 	_, err = NewIndex[doc](fmt.Sprintf("file://%s", dbfile))
 	assert.NoError(t, err)
 	assert.FileExists(t, dbfile)
+}
+
+func TestNewIndexWithCustomDB(t *testing.T) {
+	db, err := sqlx.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
+	defer db.Close()
+
+	type doc struct {
+		Id string
+	}
+
+	idx, err := NewIndex[doc]("", WithDB(db))
+	assert.NoError(t, err)
+	assert.NotNil(t, idx)
+
+	testDoc := doc{Id: "test-id"}
+	err = idx.Insert(testDoc)
+	assert.NoError(t, err)
+
+	result, err := idx.Get("test-id")
+	assert.NoError(t, err)
+	assert.Equal(t, "test-id", result.Id)
 }
 
 func TestInsert(t *testing.T) {

@@ -8,8 +8,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func open(uri string) (*sqlx.DB, error) {
-	db, err := sqlx.Open("sqlite3", uri)
+func open(driver string, uri string) (*sqlx.DB, error) {
+	db, err := sqlx.Open(driver, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -17,12 +17,7 @@ func open(uri string) (*sqlx.DB, error) {
 	return db, nil
 }
 
-func initDatabase(ctx context.Context, uri string, fields []string) (*sqlx.DB, error) {
-	db, err := open(uri)
-	if err != nil {
-		return nil, err
-	}
-
+func initDatabase(ctx context.Context, db *sqlx.DB, uri string, fields []string) (*sqlx.DB, error) {
 	pragmas := []string{
 		"PRAGMA journal_mode=WAL",
 		"PRAGMA synchronous=NORMAL",
@@ -33,7 +28,7 @@ func initDatabase(ctx context.Context, uri string, fields []string) (*sqlx.DB, e
 	}
 
 	for _, pragma := range pragmas {
-		_, err = db.ExecContext(ctx, pragma)
+		_, err := db.ExecContext(ctx, pragma)
 		if err != nil {
 			return nil, err
 		}
@@ -45,6 +40,6 @@ func initDatabase(ctx context.Context, uri string, fields []string) (*sqlx.DB, e
 	}
 	q = q[:len(q)-1] + ");"
 
-	_, err = db.ExecContext(ctx, q)
+	_, err := db.ExecContext(ctx, q)
 	return db, err
 }

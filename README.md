@@ -38,7 +38,11 @@ type Document struct {
 
 func main() {
     // Create a new index (in-memory database)
-    idx, err := hlx.NewIndex[Document](":memory:")
+    idx, err := hlx.NewIndex[Document](
+      ":memory:",
+      // Some drivers like modernc.org/sqlite need a different driver string (defaults to sqlite3)
+      hlx.WithSQLiteDriver("sqlite")
+    )
     if err != nil {
         panic(err)
     }
@@ -70,6 +74,10 @@ func main() {
     }
 }
 ```
+
+### Creating Index from Field List
+
+Sometimes you might want to define which fields to index explicitly
 
 ### Using File-based Storage
 

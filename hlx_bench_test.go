@@ -3,6 +3,8 @@ package hlx
 import (
 	"fmt"
 	"testing"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func BenchmarkInsert(b *testing.B) {

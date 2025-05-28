@@ -14,7 +14,7 @@ type Doc struct {
 }
 
 func main() {
-	idx, err := hlx.NewIndex[Doc]("db.sqlite")
+	idx, err := hlx.NewIndex[Doc]("db.sqlite", hlx.WithSQLiteDriver("sqlite"))
 	if err != nil {
 		panic(err)
 	}

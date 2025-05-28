@@ -1,0 +1,22 @@
+name: Run tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Test with the Go CLI
+        run: go test -tags fts5 ./...

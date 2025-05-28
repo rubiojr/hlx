@@ -11,6 +11,25 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+type Options struct {
+	DB     *sqlx.DB
+	driver string
+}
+
+type Option func(*Options)
+
+func WithDB(db *sqlx.DB) Option {
+	return func(o *Options) {
+		o.DB = db
+	}
+}
+
+func WithSQLiteDriver(drv string) Option {
+	return func(o *Options) {
+		o.driver = drv
+	}
+}
+
 const insertQuery = "INSERT INTO fulltext_search (%s) VALUES (%s)"
 
 type Index[K any] interface {
@@ -29,7 +48,16 @@ type index[K any] struct {
 
 type fields []string
 
-func NewIndex[K any](uri string) (Index[K], error) {
+func NewIndex[K any](uri string, opts ...Option) (Index[K], error) {
+	options := &Options{}
+	for _, opt := range opts {
+		opt(options)
+	}
+
+	if options.driver == "" {
+		options.driver = "sqlite3"
+	}
+
 	f := make(fields, 0)
 	var zero K
 	v := reflect.ValueOf(zero)
@@ -52,9 +80,19 @@ func NewIndex[K any](uri string) (Index[K], error) {
 		return nil, fmt.Errorf("Id field is missing")
 	}
 
-	db, err := initDatabase(context.Background(), uri, f)
-	if err != nil {
-		return nil, err
+	var db *sqlx.DB
+	var err error
+	if options.DB != nil {
+		db, err = initDatabase(context.Background(), options.DB, uri, f)
+	} else {
+		db, err = open(options.driver, uri)
+		if err != nil {
+			return nil, err
+		}
+		db, err = initDatabase(context.Background(), db, uri, f)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	q := []string{}
