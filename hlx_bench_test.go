@@ -14,7 +14,7 @@ func BenchmarkInsert(b *testing.B) {
 
 		// Create 10000 test documents
 		docs := make([]TestDoc, docCount)
-		for i := 0; i < docCount; i++ {
+		for i := range docCount {
 			docs[i] = TestDoc{
 				Title:       fmt.Sprintf("value_%d_1", i),
 				Description: fmt.Sprintf("value_%d_2", i),
@@ -41,7 +41,7 @@ func BenchmarkInsert(b *testing.B) {
 
 		// Create 10000 test documents
 		docs := make([]TestDoc, docCount)
-		for i := 0; i < docCount; i++ {
+		for i := range docCount {
 			docs[i] = TestDoc{
 				Title:       fmt.Sprintf("value_%d_1", i),
 				Description: fmt.Sprintf("value_%d_2", i),

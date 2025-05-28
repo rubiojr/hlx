@@ -1,5 +1,5 @@
 #!/bin/sh
 set -x
 go install golang.org/x/perf/cmd/benchstat@master
-go test -bench=. -benchmem -count 5 > bench.txt
+go test -tags fts5 -bench=. -benchmem -count 6 > bench.txt
 benchstat bench.txt

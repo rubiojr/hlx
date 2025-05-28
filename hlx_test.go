@@ -7,7 +7,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	_ "modernc.org/sqlite"
+
+	//_ "github.com/ncruces/go-sqlite3/driver"
+	//_ "github.com/ncruces/go-sqlite3/embed"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const docCount = 10000
