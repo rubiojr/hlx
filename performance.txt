@@ -1,0 +1,73 @@
+❯ go run --tags fts5 performance.go
+HLX Performance Example - Inserting 100,000 documents
+============================================================
+This example demonstrates HLX performance by:
+  • Creating 100,000 test documents
+  • Inserting them in batches of 1,000
+  • Measuring insertion and search performance
+  • Comparing memory vs file-based storage
+
+Usage: go run performance.go -tags fts5
+
+
+Memory Database (:memory:)
+----------------------------------------
+Generating 100,000 test documents... Done in 69.162554ms
+Inserting documents in batches of 1000...
+  Progress: 10.0% (10/100 batches) - Avg batch time: 90.856059ms
+  Progress: 20.0% (20/100 batches) - Avg batch time: 96.299468ms
+  Progress: 30.0% (30/100 batches) - Avg batch time: 99.841723ms
+  Progress: 40.0% (40/100 batches) - Avg batch time: 103.81085ms
+  Progress: 50.0% (50/100 batches) - Avg batch time: 108.695217ms
+  Progress: 60.0% (60/100 batches) - Avg batch time: 112.266491ms
+  Progress: 70.0% (70/100 batches) - Avg batch time: 120.978189ms
+  Progress: 80.0% (80/100 batches) - Avg batch time: 123.284892ms
+  Progress: 90.0% (90/100 batches) - Avg batch time: 126.632216ms
+  Progress: 100.0% (100/100 batches) - Avg batch time: 131.197096ms
+Testing search performance... Found 100000 results in 304.142573ms
+
+📊 Performance Statistics:
+  ⏱️  Index creation time:     1.744869ms
+  📝 Document generation:     69.162554ms
+  💾 Total insertion time:    13.119887099s
+  🚀 Time per document:       131.198µs (131.20 μs)
+  📈 Throughput:              7622.02 docs/sec
+  🔍 Search time:             304.142573ms
+  📊 Total documents:         100000
+  📦 Batch size:              1000
+  🔢 Total batches:           100
+  💽 Estimated data size:     38.15 MB
+
+File Database (performance_test.db)
+----------------------------------------
+Generating 100,000 test documents... Done in 45.995182ms
+Inserting documents in batches of 1000...
+  Progress: 10.0% (10/100 batches) - Avg batch time: 160.491511ms
+  Progress: 20.0% (20/100 batches) - Avg batch time: 168.220641ms
+  Progress: 30.0% (30/100 batches) - Avg batch time: 171.284212ms
+  Progress: 40.0% (40/100 batches) - Avg batch time: 176.785322ms
+  Progress: 50.0% (50/100 batches) - Avg batch time: 205.715043ms
+  Progress: 60.0% (60/100 batches) - Avg batch time: 220.841537ms
+  Progress: 70.0% (70/100 batches) - Avg batch time: 242.799383ms
+  Progress: 80.0% (80/100 batches) - Avg batch time: 256.933259ms
+  Progress: 90.0% (90/100 batches) - Avg batch time: 275.905197ms
+  Progress: 100.0% (100/100 batches) - Avg batch time: 315.062487ms
+Testing search performance... Found 100000 results in 302.897028ms
+
+📊 Performance Statistics:
+  ⏱️  Index creation time:     6.542129ms
+  📝 Document generation:     45.995182ms
+  💾 Total insertion time:    31.506435943s
+  🚀 Time per document:       315.064µs (315.06 μs)
+  📈 Throughput:              3173.95 docs/sec
+  🔍 Search time:             302.897028ms
+  📊 Total documents:         100000
+  📦 Batch size:              1000
+  🔢 Total batches:           100
+  💽 Estimated data size:     38.15 MB
+  🗃️  Database file size:      73.54 MB
+
+============================================================
+Performance comparison completed!
+Note: Memory database is faster but data is not persistent.
+File database is slower but provides data persistence.

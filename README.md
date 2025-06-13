@@ -116,6 +116,10 @@ err := idx.Delete("some-id")
 fields := idx.Fields()
 ```
 
+## Performance
+
+See [performance.txt](/performance.txt).
+
 ## Important Notes
 
 1. The document struct must have an `Id` field (case-sensitive)

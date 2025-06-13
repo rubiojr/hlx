@@ -3,6 +3,7 @@ package hlx
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -26,6 +27,7 @@ func BenchmarkInsert(b *testing.B) {
 
 		// Reset timer before the actual benchmark
 		b.ResetTimer()
+		start := time.Now()
 
 		// Run the benchmark
 		for i := 0; i < b.N; i++ {
@@ -34,6 +36,16 @@ func BenchmarkInsert(b *testing.B) {
 				b.Fatalf("Failed to insert documents: %v", err)
 			}
 		}
+
+		elapsed := time.Since(start)
+		totalDocs := int64(b.N) * int64(docCount)
+		timePerDoc := elapsed / time.Duration(totalDocs)
+		throughput := float64(totalDocs) / elapsed.Seconds()
+
+		b.ReportMetric(float64(timePerDoc.Nanoseconds()), "ns/doc")
+		b.ReportMetric(throughput, "docs/sec")
+		b.Logf("Memory DB - Total docs: %d, Time per doc: %v, Throughput: %.2f docs/sec",
+			totalDocs, timePerDoc, throughput)
 	})
 	b.Run("tmp db", func(b *testing.B) {
 		idx, err := NewIndex[TestDoc]("file:///tmp/hlx_test.db")
@@ -53,6 +65,7 @@ func BenchmarkInsert(b *testing.B) {
 
 		// Reset timer before the actual benchmark
 		b.ResetTimer()
+		start := time.Now()
 
 		// Run the benchmark
 		for i := 0; i < b.N; i++ {
@@ -61,5 +74,15 @@ func BenchmarkInsert(b *testing.B) {
 				b.Fatalf("Failed to insert documents: %v", err)
 			}
 		}
+
+		elapsed := time.Since(start)
+		totalDocs := int64(b.N) * int64(docCount)
+		timePerDoc := elapsed / time.Duration(totalDocs)
+		throughput := float64(totalDocs) / elapsed.Seconds()
+
+		b.ReportMetric(float64(timePerDoc.Nanoseconds()), "ns/doc")
+		b.ReportMetric(throughput, "docs/sec")
+		b.Logf("File DB - Total docs: %d, Time per doc: %v, Throughput: %.2f docs/sec",
+			totalDocs, timePerDoc, throughput)
 	})
 }
