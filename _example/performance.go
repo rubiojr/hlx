@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/rubiojr/hlx"
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Document struct {
@@ -29,6 +29,25 @@ func main() {
 	fmt.Println("Usage: go run performance.go -tags fts5")
 	fmt.Println()
 
+	// Database files to clean up
+	dbFiles := []string{"performance_test.db", "performance_test.db-shm", "performance_test.db-wal"}
+
+	// Ensure cleanup happens even if program panics
+	defer func() {
+		fmt.Print("\n🧹 Cleaning up test databases... ")
+		cleaned := 0
+		for _, file := range dbFiles {
+			if err := os.Remove(file); err == nil {
+				cleaned++
+			}
+		}
+		if cleaned > 0 {
+			fmt.Printf("Removed %d files\n", cleaned)
+		} else {
+			fmt.Println("No files to clean")
+		}
+	}()
+
 	// Test both memory and file databases
 	runPerformanceTest("Memory Database", ":memory:")
 	runPerformanceTest("File Database", "performance_test.db")
@@ -37,9 +56,6 @@ func main() {
 	fmt.Println("Performance comparison completed!")
 	fmt.Println("Note: Memory database is faster but data is not persistent.")
 	fmt.Println("File database is slower but provides data persistence.")
-
-	// Clean up
-	os.Remove("performance_test.db")
 }
 
 func runPerformanceTest(name, dbPath string) {
@@ -48,7 +64,7 @@ func runPerformanceTest(name, dbPath string) {
 
 	// Create index
 	start := time.Now()
-	idx, err := hlx.NewIndex[Document](dbPath, hlx.WithSQLiteDriver("sqlite"))
+	idx, err := hlx.NewIndex[Document](dbPath, hlx.WithSQLiteDriver("sqlite3"))
 	if err != nil {
 		panic(fmt.Sprintf("Failed to create index: %v", err))
 	}
