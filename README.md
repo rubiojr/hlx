@@ -18,6 +18,9 @@ go get github.com/rubiojr/hlx
 
 ## Usage
 
+>[!IMPORTANT]
+> When building examples and running tests, `--tags fts5 needs to be passed to the go command, to enable FTS5 support in some SQLite drivers like mattn/go-sqlite3.
+
 ### Basic Example
 
 ```go
@@ -71,11 +74,75 @@ func main() {
 }
 ```
 
-### Using File-based Storage
+### Initialization Examples
 
+#### Basic Initialization (In-Memory)
+```go
+// Create an in-memory index with default settings
+idx, err := hlx.NewIndex[Document](":memory:")
+```
+
+#### File-based Storage
 ```go
 // Create a persistent database
 idx, err := hlx.NewIndex[Document]("./documents.db")
+```
+
+#### Custom Database Connection
+```go
+import (
+    "github.com/jmoiron/sqlx"
+    _ "github.com/mattn/go-sqlite3"
+)
+
+// Use your own database connection
+db, err := sqlx.Open("sqlite3", ":memory:")
+if err != nil {
+    panic(err)
+}
+
+idx, err := hlx.NewIndex[Document]("", hlx.WithDB(db))
+```
+
+#### Custom SQLite Pragmas
+```go
+// Use custom SQLite pragmas for performance tuning
+customPragmas := []string{
+    "PRAGMA journal_mode=WAL",
+    "PRAGMA synchronous=NORMAL",
+    "PRAGMA cache_size=20000",
+    "PRAGMA temp_store=memory",
+    "PRAGMA busy_timeout=5000",
+}
+
+idx, err := hlx.NewIndex[Document]("./documents.db", hlx.WithPragmas(customPragmas))
+```
+
+#### Combined Options
+```go
+// Combine multiple options
+db, err := sqlx.Open("sqlite3", "./documents.db")
+if err != nil {
+    panic(err)
+}
+
+customPragmas := []string{
+    "PRAGMA journal_mode=WAL",
+    "PRAGMA cache_size=50000",
+}
+
+idx, err := hlx.NewIndex[Document]("", 
+    hlx.WithDB(db),
+    hlx.WithPragmas(customPragmas),
+)
+```
+
+#### Custom SQLite Driver
+```go
+// Use a specific SQLite driver (default is "sqlite3")
+idx, err := hlx.NewIndex[Document]("./documents.db", 
+    hlx.WithSQLiteDriver("modernc.org/sqlite"),
+)
 ```
 
 ### Search Syntax

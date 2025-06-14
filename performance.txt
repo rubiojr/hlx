@@ -1,3 +1,12 @@
+Lenovo ThinkPad X1 Yoga Gen 8
+13th Gen Intel® Core™ i7-1370P × 20
+64,0 GiB Memory
+Linux 6.14.9-300.fc42.x86_64
+Fedora Linux 42 (Workstation Edition)
+
+$ go run --tags fts5 performance.go
+
+
 HLX Performance Example - Inserting 100,000 documents
 ============================================================
 This example demonstrates HLX performance by:
@@ -5,33 +14,34 @@ This example demonstrates HLX performance by:
   • Inserting them in batches of 1,000
   • Measuring insertion and search performance
   • Comparing memory vs file-based storage
+  • Testing file storage with synchronous=off for maximum speed
 
 Usage: go run performance.go -tags fts5
 
 
 Memory Database (:memory:)
 ----------------------------------------
-Generating 100,000 test documents... Done in 68.293817ms
+Generating 100,000 test documents... Done in 77.927823ms
 Inserting documents in batches of 1000...
-  Progress: 10.0% (10/100 batches) - Avg batch time: 36.928142ms
-  Progress: 20.0% (20/100 batches) - Avg batch time: 39.776163ms
-  Progress: 30.0% (30/100 batches) - Avg batch time: 41.542528ms
-  Progress: 40.0% (40/100 batches) - Avg batch time: 43.135197ms
-  Progress: 50.0% (50/100 batches) - Avg batch time: 45.233407ms
-  Progress: 60.0% (60/100 batches) - Avg batch time: 46.578649ms
-  Progress: 70.0% (70/100 batches) - Avg batch time: 49.964956ms
-  Progress: 80.0% (80/100 batches) - Avg batch time: 50.049161ms
-  Progress: 90.0% (90/100 batches) - Avg batch time: 50.822703ms
-  Progress: 100.0% (100/100 batches) - Avg batch time: 52.604964ms
-Testing search performance... Found 100000 results in 224.823065ms
+  Progress: 10.0% (10/100 batches) - Avg batch time: 37.668415ms
+  Progress: 20.0% (20/100 batches) - Avg batch time: 41.138042ms
+  Progress: 30.0% (30/100 batches) - Avg batch time: 43.44267ms
+  Progress: 40.0% (40/100 batches) - Avg batch time: 45.289283ms
+  Progress: 50.0% (50/100 batches) - Avg batch time: 47.467739ms
+  Progress: 60.0% (60/100 batches) - Avg batch time: 48.627041ms
+  Progress: 70.0% (70/100 batches) - Avg batch time: 51.715861ms
+  Progress: 80.0% (80/100 batches) - Avg batch time: 51.956425ms
+  Progress: 90.0% (90/100 batches) - Avg batch time: 52.689469ms
+  Progress: 100.0% (100/100 batches) - Avg batch time: 54.442625ms
+Testing search performance... Found 100000 results in 226.965547ms
 
 📊 Performance Statistics:
-  ⏱️  Index creation time:     894.288µs
-  📝 Document generation:     68.293817ms
-  💾 Total insertion time:    5.260954618s
-  🚀 Time per document:       52.609µs (52.61 μs)
-  📈 Throughput:              19007.96 docs/sec
-  🔍 Search time:             224.823065ms
+  ⏱️  Index creation time:     1.028305ms
+  📝 Document generation:     77.927823ms
+  💾 Total insertion time:    5.444708218s
+  🚀 Time per document:       54.447µs (54.45 μs)
+  📈 Throughput:              18366.46 docs/sec
+  🔍 Search time:             226.965547ms
   📊 Total documents:         100000
   📦 Batch size:              1000
   🔢 Total batches:           100
@@ -39,34 +49,72 @@ Testing search performance... Found 100000 results in 224.823065ms
 
 File Database (performance_test.db)
 ----------------------------------------
-Generating 100,000 test documents... Done in 50.914233ms
+Generating 100,000 test documents... Done in 60.315305ms
 Inserting documents in batches of 1000...
-  Progress: 10.0% (10/100 batches) - Avg batch time: 128.737475ms
-  Progress: 20.0% (20/100 batches) - Avg batch time: 129.537858ms
-  Progress: 30.0% (30/100 batches) - Avg batch time: 133.505812ms
-  Progress: 40.0% (40/100 batches) - Avg batch time: 135.508994ms
-  Progress: 50.0% (50/100 batches) - Avg batch time: 170.672361ms
-  Progress: 60.0% (60/100 batches) - Avg batch time: 196.70735ms
-  Progress: 70.0% (70/100 batches) - Avg batch time: 220.197064ms
-  Progress: 80.0% (80/100 batches) - Avg batch time: 231.130282ms
-  Progress: 90.0% (90/100 batches) - Avg batch time: 242.153163ms
-  Progress: 100.0% (100/100 batches) - Avg batch time: 258.32305ms
-Testing search performance... Found 100000 results in 250.592079ms
+  Progress: 10.0% (10/100 batches) - Avg batch time: 130.733031ms
+  Progress: 20.0% (20/100 batches) - Avg batch time: 126.84424ms
+  Progress: 30.0% (30/100 batches) - Avg batch time: 129.676292ms
+  Progress: 40.0% (40/100 batches) - Avg batch time: 131.915221ms
+  Progress: 50.0% (50/100 batches) - Avg batch time: 134.497061ms
+  Progress: 60.0% (60/100 batches) - Avg batch time: 135.759833ms
+  Progress: 70.0% (70/100 batches) - Avg batch time: 140.848222ms
+  Progress: 80.0% (80/100 batches) - Avg batch time: 141.276398ms
+  Progress: 90.0% (90/100 batches) - Avg batch time: 142.114159ms
+  Progress: 100.0% (100/100 batches) - Avg batch time: 147.533339ms
+Testing search performance... Found 100000 results in 328.226605ms
 
 📊 Performance Statistics:
-  ⏱️  Index creation time:     9.621458ms
-  📝 Document generation:     50.914233ms
-  💾 Total insertion time:    25.832477512s
-  🚀 Time per document:       258.324µs (258.32 μs)
-  📈 Throughput:              3871.10 docs/sec
-  🔍 Search time:             250.592079ms
+  ⏱️  Index creation time:     16.325069ms
+  📝 Document generation:     60.315305ms
+  💾 Total insertion time:    14.753509139s
+  🚀 Time per document:       147.535µs (147.53 μs)
+  📈 Throughput:              6778.05 docs/sec
+  🔍 Search time:             328.226605ms
   📊 Total documents:         100000
   📦 Batch size:              1000
   🔢 Total batches:           100
+  💽 Estimated data size:     38.15 MB
+  🗃️  Database file size:      73.54 MB
+
+File Database (Fast Mode) (performance_test_fast.db)
+----------------------------------------
+Generating 100,000 test documents... Done in 64.719559ms
+Inserting documents in batches of 1000...
+  Progress: 10.0% (10/100 batches) - Avg batch time: 94.411341ms
+  Progress: 20.0% (20/100 batches) - Avg batch time: 97.387497ms
+  Progress: 30.0% (30/100 batches) - Avg batch time: 99.396684ms
+  Progress: 40.0% (40/100 batches) - Avg batch time: 100.983046ms
+  Progress: 50.0% (50/100 batches) - Avg batch time: 103.231824ms
+  Progress: 60.0% (60/100 batches) - Avg batch time: 103.683263ms
+  Progress: 70.0% (70/100 batches) - Avg batch time: 107.695384ms
+  Progress: 80.0% (80/100 batches) - Avg batch time: 107.930839ms
+  Progress: 90.0% (90/100 batches) - Avg batch time: 108.599113ms
+  Progress: 100.0% (100/100 batches) - Avg batch time: 110.223661ms
+Testing search performance... Found 100000 results in 264.45272ms
+
+📊 Performance Statistics:
+  ⏱️  Index creation time:     858.451µs
+  📝 Document generation:     64.719559ms
+  💾 Total insertion time:    11.022598047s
+  🚀 Time per document:       110.225µs (110.22 μs)
+  📈 Throughput:              9072.27 docs/sec
+  🔍 Search time:             264.45272ms
+  📊 Total documents:         100000
+  📦 Batch size:              1000
+  🔢 Total batches:           100
+  ⚙️  Custom pragmas:         [PRAGMA synchronous=OFF PRAGMA journal_mode=WAL PRAGMA cache_size=20000 PRAGMA temp_store=memory]
   💽 Estimated data size:     38.15 MB
   🗃️  Database file size:      73.53 MB
 
 ============================================================
 Performance comparison completed!
-Note: Memory database is faster but data is not persistent.
-File database is slower but provides data persistence.
+
+📋 Summary:
+  • Memory database: Fastest, but not persistent
+  • File database: Safe and persistent, moderate speed
+  • File database (Fast Mode): Maximum speed with synchronous=OFF
+
+⚠️  WARNING: synchronous=OFF trades safety for speed!
+   Data may be lost if the system crashes before writes are flushed to disk.
+
+🧹 Cleaning up test databases... Removed 6 files

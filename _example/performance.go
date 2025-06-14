@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/rubiojr/hlx"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rubiojr/hlx"
 )
 
 type Document struct {
@@ -25,12 +25,16 @@ func main() {
 	fmt.Println("  • Inserting them in batches of 1,000")
 	fmt.Println("  • Measuring insertion and search performance")
 	fmt.Println("  • Comparing memory vs file-based storage")
+	fmt.Println("  • Testing file storage with synchronous=off for maximum speed")
 	fmt.Println()
-	fmt.Println("Usage: go run performance.go -tags fts5")
+	fmt.Println("Usage: go run --tags fts5 performance.go")
 	fmt.Println()
 
 	// Database files to clean up
-	dbFiles := []string{"performance_test.db", "performance_test.db-shm", "performance_test.db-wal"}
+	dbFiles := []string{
+		"performance_test.db", "performance_test.db-shm", "performance_test.db-wal",
+		"performance_test_fast.db", "performance_test_fast.db-shm", "performance_test_fast.db-wal",
+	}
 
 	// Ensure cleanup happens even if program panics
 	defer func() {
@@ -48,23 +52,46 @@ func main() {
 		}
 	}()
 
-	// Test both memory and file databases
-	runPerformanceTest("Memory Database", ":memory:")
-	runPerformanceTest("File Database", "performance_test.db")
+	// Test memory, file, and file with synchronous=off
+	runPerformanceTest("Memory Database", ":memory:", nil)
+	runPerformanceTest("File Database", "performance_test.db", nil)
+
+	// Test with synchronous=off for maximum write performance
+	fastPragmas := []string{
+		"PRAGMA synchronous=OFF",
+		"PRAGMA journal_mode=WAL",
+		"PRAGMA cache_size=20000",
+		"PRAGMA temp_store=memory",
+	}
+	runPerformanceTest("File Database (Fast Mode)", "performance_test_fast.db", fastPragmas)
 
 	fmt.Println("\n" + "============================================================")
 	fmt.Println("Performance comparison completed!")
-	fmt.Println("Note: Memory database is faster but data is not persistent.")
-	fmt.Println("File database is slower but provides data persistence.")
+	fmt.Println()
+	fmt.Println("📋 Summary:")
+	fmt.Println("  • Memory database: Fastest, but not persistent")
+	fmt.Println("  • File database: Safe and persistent, moderate speed")
+	fmt.Println("  • File database (Fast Mode): Maximum speed with synchronous=OFF")
+	fmt.Println()
+	fmt.Println("⚠️  WARNING: synchronous=OFF trades safety for speed!")
+	fmt.Println("   Data may be lost if the system crashes before writes are flushed to disk.")
 }
 
-func runPerformanceTest(name, dbPath string) {
+func runPerformanceTest(name, dbPath string, pragmas []string) {
 	fmt.Printf("\n%s (%s)\n", name, dbPath)
 	fmt.Println("----------------------------------------")
 
 	// Create index
 	start := time.Now()
-	idx, err := hlx.NewIndex[Document](dbPath, hlx.WithSQLiteDriver("sqlite3"))
+	var idx hlx.Index[Document]
+	var err error
+
+	if pragmas != nil {
+		idx, err = hlx.NewIndex[Document](dbPath, hlx.WithSQLiteDriver("sqlite3"), hlx.WithPragmas(pragmas))
+	} else {
+		idx, err = hlx.NewIndex[Document](dbPath, hlx.WithSQLiteDriver("sqlite3"))
+	}
+
 	if err != nil {
 		panic(fmt.Sprintf("Failed to create index: %v", err))
 	}
@@ -126,7 +153,7 @@ func runPerformanceTest(name, dbPath string) {
 	fmt.Printf("Found %d results in %v\n", len(results), searchTime)
 
 	// Display comprehensive statistics
-	fmt.Println("\n📊 Performance Statistics:")
+	fmt.Printf("\n📊 Performance Statistics:\n")
 	fmt.Printf("  ⏱️  Index creation time:     %v\n", indexCreationTime)
 	fmt.Printf("  📝 Document generation:     %v\n", generationTime)
 	fmt.Printf("  💾 Total insertion time:    %v\n", totalTime)
@@ -136,6 +163,10 @@ func runPerformanceTest(name, dbPath string) {
 	fmt.Printf("  📊 Total documents:         %d\n", totalDocs)
 	fmt.Printf("  📦 Batch size:              %d\n", batchSize)
 	fmt.Printf("  🔢 Total batches:           %d\n", totalBatches)
+
+	if pragmas != nil {
+		fmt.Printf("  ⚙️  Custom pragmas:         %v\n", pragmas)
+	}
 
 	// Memory usage estimation
 	avgDocSize := estimateDocumentSize()

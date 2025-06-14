@@ -1,0 +1,1 @@
+Use --tags fts5 when running tests or go build. --tags goes right after go build, run or test, the order is important.

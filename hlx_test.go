@@ -65,6 +65,93 @@ func TestNewIndexWithCustomDB(t *testing.T) {
 	assert.Equal(t, "test-id", result.Id)
 }
 
+func TestNewIndexWithCustomPragmas(t *testing.T) {
+	customPragmas := []string{
+		"PRAGMA journal_mode=DELETE",
+		"PRAGMA synchronous=FULL",
+		"PRAGMA cache_size=5000",
+		"PRAGMA temp_store=file",
+		"PRAGMA busy_timeout=10000",
+	}
+
+	type doc struct {
+		Id    string
+		Title string
+	}
+
+	idx, err := NewIndex[doc](":memory:", WithPragmas(customPragmas))
+	assert.NoError(t, err)
+	assert.NotNil(t, idx)
+
+	testDoc := doc{Id: "test-id", Title: "Test Title"}
+	err = idx.Insert(testDoc)
+	assert.NoError(t, err)
+
+	result, err := idx.Get("test-id")
+	assert.NoError(t, err)
+	assert.Equal(t, "test-id", result.Id)
+	assert.Equal(t, "Test Title", result.Title)
+
+	results, err := idx.Search("Test Title")
+	assert.NoError(t, err)
+	assert.Len(t, results, 1)
+	assert.Equal(t, "test-id", results[0].Id)
+}
+
+func TestNewIndexWithCustomDBAndPragmas(t *testing.T) {
+	db, err := sqlx.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
+	defer db.Close()
+
+	customPragmas := []string{
+		"PRAGMA synchronous=NORMAL",
+		"PRAGMA cache_size=20000",
+		"PRAGMA temp_store=memory",
+		"PRAGMA busy_timeout=15000",
+	}
+
+	type doc struct {
+		Id      string
+		Title   string
+		Content string
+	}
+
+	idx, err := NewIndex[doc]("", WithDB(db), WithPragmas(customPragmas))
+	assert.NoError(t, err)
+	assert.NotNil(t, idx)
+
+	testDoc := doc{Id: "pragma-test", Title: "Pragma Test", Content: "Testing custom pragmas"}
+	err = idx.Insert(testDoc)
+	assert.NoError(t, err)
+
+	result, err := idx.Get("pragma-test")
+	assert.NoError(t, err)
+	assert.Equal(t, "pragma-test", result.Id)
+	assert.Equal(t, "Pragma Test", result.Title)
+	assert.Equal(t, "Testing custom pragmas", result.Content)
+
+	results, err := idx.Search("custom pragmas")
+	assert.NoError(t, err)
+	assert.Len(t, results, 1)
+	assert.Equal(t, "pragma-test", results[0].Id)
+
+	// Verify some pragma settings were applied by querying SQLite
+	var synchronous int
+	err = db.Get(&synchronous, "PRAGMA synchronous")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, synchronous) // NORMAL = 1
+
+	var cacheSize int
+	err = db.Get(&cacheSize, "PRAGMA cache_size")
+	assert.NoError(t, err)
+	assert.Equal(t, 20000, cacheSize)
+
+	var busyTimeout int
+	err = db.Get(&busyTimeout, "PRAGMA busy_timeout")
+	assert.NoError(t, err)
+	assert.Equal(t, 15000, busyTimeout)
+}
+
 func TestInsert(t *testing.T) {
 	idx, err := NewIndex[TestDoc](":memory:")
 	if err != nil {

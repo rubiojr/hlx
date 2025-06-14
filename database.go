@@ -17,16 +17,7 @@ func open(driver string, uri string) (*sqlx.DB, error) {
 	return db, nil
 }
 
-func initDatabase(ctx context.Context, db *sqlx.DB, uri string, fields []string) (*sqlx.DB, error) {
-	pragmas := []string{
-		"PRAGMA journal_mode=WAL",
-		"PRAGMA synchronous=NORMAL",
-		"PRAGMA cache_size=10000",
-		"PRAGMA temp_store=memory",
-		"PRAGMA mmap_size=268435456",
-		"PRAGMA busy_timeout=5000",
-	}
-
+func initDatabase(ctx context.Context, db *sqlx.DB, uri string, fields []string, pragmas []string) (*sqlx.DB, error) {
 	for _, pragma := range pragmas {
 		_, err := db.ExecContext(ctx, pragma)
 		if err != nil {

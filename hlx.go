@@ -12,8 +12,9 @@ import (
 )
 
 type Options struct {
-	DB     *sqlx.DB
-	driver string
+	DB      *sqlx.DB
+	driver  string
+	pragmas []string
 }
 
 type Option func(*Options)
@@ -27,6 +28,12 @@ func WithDB(db *sqlx.DB) Option {
 func WithSQLiteDriver(drv string) Option {
 	return func(o *Options) {
 		o.driver = drv
+	}
+}
+
+func WithPragmas(pragmas []string) Option {
+	return func(o *Options) {
+		o.pragmas = pragmas
 	}
 }
 
@@ -48,8 +55,17 @@ type index[K any] struct {
 
 type fields []string
 
+var DefaultPragmas = []string{
+	"PRAGMA journal_mode=WAL",
+	"PRAGMA synchronous=NORMAL",
+	"PRAGMA cache_size=10000",
+	"PRAGMA temp_store=memory",
+	"PRAGMA mmap_size=268435456",
+	"PRAGMA busy_timeout=5000",
+}
+
 func NewIndex[K any](uri string, opts ...Option) (Index[K], error) {
-	options := &Options{}
+	options := &Options{pragmas: DefaultPragmas}
 	for _, opt := range opts {
 		opt(options)
 	}
@@ -83,13 +99,13 @@ func NewIndex[K any](uri string, opts ...Option) (Index[K], error) {
 	var db *sqlx.DB
 	var err error
 	if options.DB != nil {
-		db, err = initDatabase(context.Background(), options.DB, uri, f)
+		db, err = initDatabase(context.Background(), options.DB, uri, f, options.pragmas)
 	} else {
 		db, err = open(options.driver, uri)
 		if err != nil {
 			return nil, err
 		}
-		db, err = initDatabase(context.Background(), db, uri, f)
+		db, err = initDatabase(context.Background(), db, uri, f, options.pragmas)
 		if err != nil {
 			return nil, err
 		}
