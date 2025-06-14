@@ -9,6 +9,7 @@ A simple, type-safe, full-text document search library for Go powered by SQLite 
 - Automatic UUID generation for documents without IDs
 - Support for in-memory and file-based databases
 - Simple and intuitive API
+- Relatively fast. hlx can index [thousands of documents per second](/performance.txt) in a modern laptop and perform sub-second searches.
 
 ## Installation
 
@@ -34,7 +35,7 @@ import (
 
 // Define your document structure
 type Document struct {
-    Id      string // Id field is required
+    Id      string // Id field needs to be defined but not set
     Title   string
     Content string
 }
